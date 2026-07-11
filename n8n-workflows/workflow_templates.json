@@ -1,0 +1,150 @@
+{
+  "name": "HR Copilot — n8n Workflow Templates",
+  "description": "Pre-built automation workflows for the HR Copilot HRMS platform",
+  "version": "1.0.0",
+  "workflows": [
+    {
+      "id": "wf_leave_approval_notification",
+      "name": "Leave Approval Notification",
+      "description": "Sends email and Slack notification when a leave request is approved or rejected by the AI agent",
+      "trigger": "Webhook — POST /webhooks/leave-decision",
+      "nodes": [
+        "Webhook Trigger",
+        "IF (decision == approved)",
+        "Format Approval Email (HTML template)",
+        "Send Gmail (to employee)",
+        "Post Slack Message (#hr-notifications)",
+        "IF (decision == escalated)",
+        "Format Escalation Email",
+        "Send Gmail (to manager)",
+        "Update HRMS via API (PATCH /api/v1/leaves/{id})"
+      ],
+      "estimated_setup_time": "15 minutes"
+    },
+    {
+      "id": "wf_new_hire_onboarding",
+      "name": "New Hire Onboarding Automation",
+      "description": "Automates the onboarding process when a new employee record is created",
+      "trigger": "Webhook — POST /webhooks/new-employee",
+      "nodes": [
+        "Webhook Trigger",
+        "Create Google Workspace Account",
+        "Add to Slack Channels (#general, #team-{dept})",
+        "Generate Welcome Email (HTML template)",
+        "Send Gmail (to new hire)",
+        "Create Jira Onboarding Ticket",
+        "Schedule 1:1 with Manager (Google Calendar API)",
+        "Assign Mandatory Training Courses (API call)",
+        "Update HRMS Onboarding Status (PATCH /api/v1/employees/{id})"
+      ],
+      "estimated_setup_time": "30 minutes"
+    },
+    {
+      "id": "wf_payroll_processing",
+      "name": "Monthly Payroll Processing",
+      "description": "Runs payroll agent for all active employees on the 28th of every month",
+      "trigger": "Cron — 0 9 28 * * (28th of every month at 9 AM)",
+      "nodes": [
+        "Cron Trigger",
+        "Fetch Active Employees (GET /api/v1/employees?status=active)",
+        "Loop: For Each Employee",
+        "Execute Payroll Agent (POST /api/v1/agents/execute)",
+        "IF (anomalies detected)",
+        "Send Alert to Finance Team",
+        "Generate Payslip PDF",
+        "Send Payslip Email (to employee)",
+        "Post Summary to Slack (#finance)"
+      ],
+      "estimated_setup_time": "25 minutes"
+    },
+    {
+      "id": "wf_attendance_daily_report",
+      "name": "Daily Attendance Report",
+      "description": "Generates and distributes daily attendance summary at 7 PM",
+      "trigger": "Cron — 0 19 * * 1-5 (Mon-Fri at 7 PM)",
+      "nodes": [
+        "Cron Trigger",
+        "Fetch Today's Attendance (GET /api/v1/attendance/today)",
+        "Calculate Metrics (present %, late count, absent count)",
+        "Format HTML Report",
+        "Send Gmail (to HR team)",
+        "Post Slack Summary (#hr-operations)",
+        "IF (attendance < 80%)",
+        "Send Alert to Management"
+      ],
+      "estimated_setup_time": "15 minutes"
+    },
+    {
+      "id": "wf_birthday_anniversary",
+      "name": "Birthday & Work Anniversary Wishes",
+      "description": "Sends automated birthday and work anniversary greetings",
+      "trigger": "Cron — 0 9 * * * (Daily at 9 AM)",
+      "nodes": [
+        "Cron Trigger",
+        "Fetch Today's Birthdays (GET /api/v1/employees?birthday_today=true)",
+        "Fetch Today's Anniversaries (GET /api/v1/employees?anniversary_today=true)",
+        "IF (birthdays found)",
+        "Generate Birthday Card (Canva API or template)",
+        "Post to Slack (#celebrations) with @mention",
+        "Send Gmail (to birthday person)",
+        "IF (anniversaries found)",
+        "Generate Anniversary Message",
+        "Post to Slack (#celebrations)"
+      ],
+      "estimated_setup_time": "20 minutes"
+    },
+    {
+      "id": "wf_compliance_weekly_scan",
+      "name": "Weekly Compliance Scan",
+      "description": "Runs compliance agent for all employees every Monday morning",
+      "trigger": "Cron — 0 8 * * 1 (Monday at 8 AM)",
+      "nodes": [
+        "Cron Trigger",
+        "Execute Compliance Agent (POST /api/v1/agents/execute)",
+        "Filter: High-Risk Violations Only",
+        "Format Compliance Report",
+        "Send Gmail (to HR Manager)",
+        "IF (critical violations)",
+        "Create Urgent Jira Ticket",
+        "Send Slack DM (to employee's manager)"
+      ],
+      "estimated_setup_time": "20 minutes"
+    },
+    {
+      "id": "wf_candidate_screening",
+      "name": "Automated Resume Screening",
+      "description": "Screens new candidate applications using the Recruitment Agent",
+      "trigger": "Webhook — POST /webhooks/new-application",
+      "nodes": [
+        "Webhook Trigger",
+        "Extract Resume Text (PDF parser)",
+        "Execute Recruitment Agent (POST /api/v1/agents/execute)",
+        "IF (recommendation == strongly_recommend)",
+        "Schedule Interview (Google Calendar)",
+        "Send Interview Email (to candidate)",
+        "IF (recommendation == not_recommend)",
+        "Send Polite Rejection Email",
+        "Update Candidate Status in HRMS"
+      ],
+      "estimated_setup_time": "25 minutes"
+    },
+    {
+      "id": "wf_performance_review_cycle",
+      "name": "Quarterly Performance Review Cycle",
+      "description": "Initiates performance review process at the start of each quarter",
+      "trigger": "Cron — 0 9 1 1,4,7,10 * (1st of Jan, Apr, Jul, Oct)",
+      "nodes": [
+        "Cron Trigger",
+        "Fetch All Employees with Active Goals",
+        "Loop: For Each Employee",
+        "Execute Performance Agent (POST /api/v1/agents/execute)",
+        "Generate Performance Review Document",
+        "Send Gmail (to employee + manager)",
+        "Create Review Meeting Event (Google Calendar)",
+        "Aggregate Org-Level Metrics",
+        "Post Summary to Slack (#leadership)"
+      ],
+      "estimated_setup_time": "30 minutes"
+    }
+  ]
+}
