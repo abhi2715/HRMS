@@ -43,6 +43,9 @@ dependencies = [
     "pytz>=2024.2",
     "uuid6>=2024.7.10",
     "slowapi>=0.1.9",
+    
+    # ── LLM ──────────────────────────────────────────────────
+    "groq>=0.9.0",
 ]
 
 [project.optional-dependencies]

@@ -38,6 +38,8 @@ class LLMClient:
             return await self._openai_generate(system_prompt, user_query, context)
         elif self.provider == "gemini":
             return await self._gemini_generate(system_prompt, user_query, context)
+        elif self.provider == "groq":
+            return await self._groq_generate(system_prompt, user_query, context)
         else:
             return self._mock_generate(system_prompt, user_query, context)
 
@@ -72,6 +74,25 @@ class LLMClient:
             return response.text or ""
         except Exception as e:
             logger.error(f"Gemini error: {e}")
+            return self._mock_generate(system_prompt, user_query, context)
+
+    async def _groq_generate(self, system_prompt: str, user_query: str, context: str) -> str:
+        """Generate using Groq API."""
+        try:
+            from groq import AsyncGroq
+            client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
+            response = await client.chat.completions.create(
+                model=os.getenv("GROQ_MODEL", "llama3-8b-8192"),
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {user_query}"},
+                ],
+                temperature=0.3,
+                max_tokens=1024,
+            )
+            return response.choices[0].message.content or ""
+        except Exception as e:
+            logger.error(f"Groq error: {e}")
             return self._mock_generate(system_prompt, user_query, context)
 
     def _mock_generate(self, system_prompt: str, user_query: str, context: str) -> str:

@@ -81,13 +81,15 @@ class Settings(BaseSettings):
         return v
 
     # ── LLM ──────────────────────────────────────────────────
-    LLM_PROVIDER: Literal["ollama", "openai"] = "openai"
+    LLM_PROVIDER: Literal["ollama", "openai", "groq"] = "openai"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3.3:70b"
     OLLAMA_EMBED_MODEL: str = "nomic-embed-text"
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
     OPENAI_EMBED_MODEL: str = "text-embedding-3-small"
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama3-8b-8192"
 
     # ── Email ────────────────────────────────────────────────
     SMTP_HOST: str = "smtp.gmail.com"
