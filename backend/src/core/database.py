@@ -62,6 +62,3 @@ def _import_all_models() -> None:
     import src.training.models  # noqa: F401
     import src.compliance.models  # noqa: F401
 
-
-_import_all_models()
-

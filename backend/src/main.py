@@ -52,6 +52,11 @@ async def lifespan(app: FastAPI):
     logger.info(f"   Database: {settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}")
     logger.info(f"   LLM Provider: {settings.LLM_PROVIDER}")
 
+    # Import all models after all modules have loaded to prevent circular imports
+    # while ensuring SQLAlchemy relationship strings are resolved before queries run
+    from src.core.database import _import_all_models
+    _import_all_models()
+
     yield
 
     logger.info("🛑 Shutting down HR Copilot...")
