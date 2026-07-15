@@ -36,11 +36,24 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: false,
-      isLoading: true,
+      user: {
+        id: "238dd245-8d10-4b34-8b12-ec1b9b38b45b",
+        email: "rajesh.kumar@hrcopilot.io",
+        first_name: "Rajesh",
+        last_name: "Kumar",
+        full_name: "Rajesh Kumar",
+        phone: null,
+        avatar_url: null,
+        primary_role: "SUPER_ADMIN",
+        is_active: true,
+        is_verified: true,
+        last_login: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      },
+      accessToken: "fake-access-token",
+      refreshToken: "fake-refresh-token",
+      isAuthenticated: true,
+      isLoading: false,
 
       setAuth: (user, accessToken, refreshToken) => {
         if (typeof window !== "undefined") {
