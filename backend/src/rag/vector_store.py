@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+QDRANT_URL = os.getenv("QDRANT_URL")
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = "hr_policies"
 EMBEDDING_DIM = 384  # Sentence-transformers 'all-MiniLM-L6-v2' dimension
 
@@ -123,7 +125,10 @@ class VectorStore:
             from qdrant_client import QdrantClient
             from qdrant_client.models import Distance, VectorParams
 
-            self._qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT, timeout=5)
+            if QDRANT_URL and QDRANT_API_KEY:
+                self._qdrant_client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, timeout=10)
+            else:
+                self._qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT, timeout=5)
             # Ensure collection exists
             collections = [c.name for c in self._qdrant_client.get_collections().collections]
             if COLLECTION_NAME not in collections:

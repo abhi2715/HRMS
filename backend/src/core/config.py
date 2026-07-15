@@ -37,8 +37,18 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "hrms_user"
     POSTGRES_PASSWORD: str = "hrms_secure_password_2024"
 
+    DATABASE_URL: str | None = None
+
     @property
     def database_url(self) -> str:
+        if self.DATABASE_URL:
+            # SQLAlchemy asyncpg requires postgresql+asyncpg://
+            if self.DATABASE_URL.startswith("postgres://"):
+                return self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+            if self.DATABASE_URL.startswith("postgresql://"):
+                return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+            return self.DATABASE_URL
+
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -46,6 +56,11 @@ class Settings(BaseSettings):
 
     @property
     def database_url_sync(self) -> str:
+        if self.DATABASE_URL:
+            if self.DATABASE_URL.startswith("postgres://"):
+                return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+            return self.DATABASE_URL
+            
         return (
             f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -56,11 +71,17 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_PASSWORD: str = "redis_secure_password_2024"
 
+    REDIS_URL: str | None = None
+
     @property
     def redis_url(self) -> str:
+        if self.REDIS_URL:
+            return self.REDIS_URL
         return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
     # ── Qdrant ───────────────────────────────────────────────
+    QDRANT_URL: str | None = None
+    QDRANT_API_KEY: str | None = None
     QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
 
