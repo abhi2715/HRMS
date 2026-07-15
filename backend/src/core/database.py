@@ -43,3 +43,25 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
+
+def _import_all_models() -> None:
+    """Import every model module so SQLAlchemy can resolve all relationships.
+
+    This must run before any query is executed, otherwise cross-module
+    relationships (e.g. User.employee → Employee) will fail with
+    'failed to locate a name' errors.
+    """
+    import src.auth.models  # noqa: F401
+    import src.employees.models  # noqa: F401
+    import src.leaves.models  # noqa: F401
+    import src.attendance.models  # noqa: F401
+    import src.recruitment.models  # noqa: F401
+    import src.payroll.models  # noqa: F401
+    import src.performance.models  # noqa: F401
+    import src.training.models  # noqa: F401
+    import src.compliance.models  # noqa: F401
+
+
+_import_all_models()
+
