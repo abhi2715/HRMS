@@ -31,11 +31,11 @@ class Settings(BaseSettings):
     BACKEND_PORT: int = 8000
 
     # ── Database ─────────────────────────────────────────────
-    POSTGRES_HOST: str = "localhost"
+    POSTGRES_HOST: str = "ep-summer-sound-atfdgtuj.c-9.us-east-1.aws.neon.tech"
     POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "hrms"
-    POSTGRES_USER: str = "hrms_user"
-    POSTGRES_PASSWORD: str = "hrms_secure_password_2024"
+    POSTGRES_DB: str = "neondb"
+    POSTGRES_USER: str = "neondb_owner"
+    POSTGRES_PASSWORD: str = "npg_Jn9tc2NSRpYA"
 
     DATABASE_URL: str | None = None
 
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}?ssl=require"
         )
 
     @property
@@ -63,7 +63,7 @@ class Settings(BaseSettings):
             
         return (
             f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}?sslmode=require"
         )
 
     # ── Redis ────────────────────────────────────────────────
