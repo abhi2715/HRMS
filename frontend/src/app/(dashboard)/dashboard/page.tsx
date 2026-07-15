@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { cn, formatCurrency, formatCompact, getInitials, stringToColor } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -170,6 +171,66 @@ const itemVariants = {
 };
 
 export default function DashboardPage() {
+  const [summaryData, setSummaryData] = useState<{
+    kpis: {
+      totalEmployees: number;
+      presentToday: number;
+      pendingLeaves: number;
+      openPositions: number;
+    };
+    departmentDistribution: { name: string; value: number }[];
+    recentHires: { name: string; date: string; dept: string; role: string }[];
+  } | null>(null);
+  
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/dashboard/summary`);
+        if (response.ok) {
+          const data = await response.json();
+          setSummaryData(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard summary", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSummary();
+  }, []);
+
+  // Update KPI cards with real data if available
+  const dynamicKpiCards = kpiCards.map(card => {
+    if (card.title === "Total Employees" && summaryData) {
+      return { ...card, value: summaryData.kpis.totalEmployees.toString() };
+    }
+    if (card.title === "Present Today" && summaryData) {
+      return { ...card, value: summaryData.kpis.presentToday.toString() };
+    }
+    if (card.title === "Pending Leaves" && summaryData) {
+      return { ...card, value: summaryData.kpis.pendingLeaves.toString() };
+    }
+    if (card.title === "Open Positions" && summaryData) {
+      return { ...card, value: summaryData.kpis.openPositions.toString() };
+    }
+    return card;
+  });
+
+  const dynamicDeptData = summaryData ? summaryData.departmentDistribution.map((d, i) => ({
+    ...d,
+    color: departmentData[i % departmentData.length].color
+  })) : departmentData;
+
+  const dynamicHires = summaryData && summaryData.recentHires.length > 0 ? summaryData.recentHires : recentHires;
+
+  if (isLoading) {
+    return <div className="flex h-full items-center justify-center p-12">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>;
+  }
+
   return (
     <motion.div
       variants={containerVariants}
@@ -198,7 +259,7 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpiCards.map((kpi, i) => (
+        {dynamicKpiCards.map((kpi, i) => (
           <motion.div
             key={kpi.title}
             whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -306,7 +367,7 @@ export default function DashboardPage() {
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
-                data={departmentData}
+                data={dynamicDeptData}
                 cx="50%"
                 cy="50%"
                 innerRadius={55}
@@ -314,8 +375,8 @@ export default function DashboardPage() {
                 paddingAngle={3}
                 dataKey="value"
               >
-                {departmentData.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
+                {dynamicDeptData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip
@@ -329,7 +390,7 @@ export default function DashboardPage() {
             </PieChart>
           </ResponsiveContainer>
           <div className="mt-2 grid grid-cols-2 gap-1.5">
-            {departmentData.slice(0, 6).map((dept) => (
+            {dynamicDeptData.slice(0, 6).map((dept) => (
               <div key={dept.name} className="flex items-center gap-1.5 text-xs">
                 <div
                   className="h-2 w-2 rounded-full shrink-0"
@@ -453,9 +514,9 @@ export default function DashboardPage() {
             <h3 className="text-sm font-semibold">Recent Hires</h3>
             <button className="text-xs text-primary hover:underline">View all</button>
           </div>
-          <div className="space-y-3">
-            {recentHires.map((hire, i) => (
-              <div
+          <div className="space-y-4">
+            {dynamicHires.map((hire, i) => (
+              <motion.div
                 key={i}
                 className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted/50 transition-colors"
               >
@@ -474,7 +535,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div className="text-xs text-muted-foreground whitespace-nowrap">{hire.date}</div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>

@@ -22,6 +22,7 @@ from src.training.router import router as training_router
 from src.compliance.router import router as compliance_router
 from src.agents.orchestrator import router as agents_router
 from src.rag.chatbot import router as chat_router
+from src.dashboard.router import router as dashboard_router
 from src.core.config import get_settings
 from src.core.exceptions import (
     AppException,
@@ -95,6 +96,7 @@ app.include_router(payroll_router, prefix=settings.API_V1_PREFIX)
 app.include_router(performance_router, prefix=settings.API_V1_PREFIX)
 app.include_router(training_router, prefix=settings.API_V1_PREFIX)
 app.include_router(compliance_router, prefix=settings.API_V1_PREFIX)
+app.include_router(dashboard_router, prefix=settings.API_V1_PREFIX)
 app.include_router(agents_router, prefix=settings.API_V1_PREFIX)
 app.include_router(chat_router, prefix=settings.API_V1_PREFIX)
 

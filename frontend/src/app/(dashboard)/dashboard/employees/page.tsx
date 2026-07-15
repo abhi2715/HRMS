@@ -16,26 +16,22 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-// Mock data for the employee list
-const employees = [
-  { id: "1", code: "EMP001", name: "System Administrator", email: "admin@hrcopilot.ai", department: "Human Resources", designation: "HR Manager", type: "full_time", status: "active", location: "Bangalore", joining: "2020-01-01", avatar: null },
-  { id: "2", code: "EMP002", name: "Kavita Sharma", email: "hr@hrcopilot.ai", department: "Human Resources", designation: "HR Manager", type: "full_time", status: "active", location: "Bangalore", joining: "2021-03-15", avatar: null },
-  { id: "3", code: "EMP003", name: "Priya Gupta", email: "recruiter@hrcopilot.ai", department: "Human Resources", designation: "Recruiter", type: "full_time", status: "active", location: "Mumbai", joining: "2021-06-20", avatar: null },
-  { id: "4", code: "EMP004", name: "Sanjay Mehta", email: "payroll@hrcopilot.ai", department: "Finance", designation: "Finance Manager", type: "full_time", status: "active", location: "Bangalore", joining: "2021-01-10", avatar: null },
-  { id: "5", code: "EMP005", name: "Vikram Reddy", email: "manager@hrcopilot.ai", department: "Engineering", designation: "Engineering Manager", type: "full_time", status: "active", location: "Hyderabad", joining: "2021-08-01", avatar: null },
-  { id: "6", code: "EMP006", name: "Rahul Kumar", email: "employee@hrcopilot.ai", department: "Engineering", designation: "Software Engineer", type: "full_time", status: "active", location: "Bangalore", joining: "2022-02-15", avatar: null },
-  { id: "7", code: "EMP007", name: "Deepak Verma", email: "deepak.verma@hrcopilot.ai", department: "Data Science", designation: "ML Engineer", type: "full_time", status: "active", location: "Pune", joining: "2022-04-01", avatar: null },
-  { id: "8", code: "EMP008", name: "Sneha Nair", email: "sneha.nair@hrcopilot.ai", department: "Design", designation: "Lead Designer", type: "full_time", status: "active", location: "Bangalore", joining: "2021-11-15", avatar: null },
-  { id: "9", code: "EMP009", name: "Ananya Patel", email: "ananya.patel@hrcopilot.ai", department: "Product", designation: "Product Manager", type: "full_time", status: "active", location: "Mumbai", joining: "2022-07-01", avatar: null },
-  { id: "10", code: "EMP010", name: "Rohit Singh", email: "rohit.singh@hrcopilot.ai", department: "Engineering", designation: "DevOps Engineer", type: "full_time", status: "active", location: "Gurgaon", joining: "2023-01-09", avatar: null },
-  { id: "11", code: "EMP011", name: "Meera Iyer", email: "meera.iyer@hrcopilot.ai", department: "Marketing", designation: "Marketing Manager", type: "full_time", status: "active", location: "Chennai", joining: "2022-05-16", avatar: null },
-  { id: "12", code: "EMP012", name: "Karan Chauhan", email: "karan.c@hrcopilot.ai", department: "Sales", designation: "Sales Executive", type: "full_time", status: "active", location: "Delhi", joining: "2023-03-20", avatar: null },
-  { id: "13", code: "EMP013", name: "Divya Kapoor", email: "divya.k@hrcopilot.ai", department: "Engineering", designation: "Senior Software Engineer", type: "full_time", status: "active", location: "Bangalore", joining: "2021-09-12", avatar: null },
-  { id: "14", code: "EMP014", name: "Nikhil Saxena", email: "nikhil.s@hrcopilot.ai", department: "Quality Assurance", designation: "QA Engineer", type: "full_time", status: "active", location: "Noida", joining: "2023-06-05", avatar: null },
-  { id: "15", code: "EMP015", name: "Pallavi Joshi", email: "pallavi.j@hrcopilot.ai", department: "Operations", designation: "Project Manager", type: "full_time", status: "on_notice", location: "Pune", joining: "2022-01-18", avatar: null },
-];
+// Types
+interface Employee {
+  id: string;
+  code: string;
+  name: string;
+  email: string;
+  department: string;
+  designation: string;
+  type: string;
+  status: string;
+  location: string;
+  joining: string;
+  avatar: string | null;
+}
 
 const departments = ["All", "Engineering", "Product", "Design", "Marketing", "Sales", "Human Resources", "Finance", "Data Science", "Quality Assurance", "Operations"];
 const statuses = ["All", "active", "on_notice", "probation", "terminated"];
@@ -55,6 +51,40 @@ export default function EmployeesPage() {
   const [selectedDept, setSelectedDept] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/employees`);
+        if (response.ok) {
+          const data = await response.json();
+          // Map backend response to frontend interface
+          const mappedEmployees = data.items.map((emp: any) => ({
+            id: emp.id,
+            code: emp.employee_code || "N/A",
+            name: emp.full_name || `${emp.first_name} ${emp.last_name}`,
+            email: emp.email,
+            department: emp.department_name || "Unassigned",
+            designation: emp.designation_title || "Unassigned",
+            type: emp.employment_type || "full_time",
+            status: emp.employment_status || "active",
+            location: emp.work_location || emp.city || "Office",
+            joining: emp.date_of_joining,
+            avatar: emp.avatar_url || null,
+          }));
+          setEmployees(mappedEmployees);
+        }
+      } catch (error) {
+        console.error("Failed to fetch employees", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEmployees();
+  }, []);
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
@@ -100,8 +130,14 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : (
+        <>
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total", value: employees.length, color: "text-indigo-500", bg: "bg-indigo-50 dark:bg-indigo-950/30" },
           { label: "Active", value: employees.filter(e => e.status === "active").length, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
@@ -351,6 +387,8 @@ export default function EmployeesPage() {
             Try adjusting your search or filters
           </p>
         </div>
+      )}
+      </>
       )}
     </motion.div>
   );
