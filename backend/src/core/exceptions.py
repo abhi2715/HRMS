@@ -116,11 +116,21 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions."""
+    from src.core.config import get_settings
+    import traceback
+    
+    settings = get_settings()
+    content = {
+        "success": False,
+        "message": "An internal server error occurred",
+        "path": str(request.url),
+    }
+    
+    if settings.DEBUG:
+        content["details"] = str(exc)
+        content["traceback"] = traceback.format_exc()
+        
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "success": False,
-            "message": "An internal server error occurred",
-            "path": str(request.url),
-        },
+        content=content,
     )
